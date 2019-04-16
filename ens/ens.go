@@ -13,17 +13,18 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-//go:generate abigen --sol contract/ens.sol --pkg contract --out contract/ens.go
+//go:generate abigen --sol contract/DNSResolver.sol --pkg contract --out contract/dnsresolver.go
 
 package ens
 
 import (
     "strings"
 
-    "github.com/arachnid/ensdns/ens/contract"
+    dnsresolver "github.com/arachnid/ensdns/ens/contract"
     "github.com/miekg/dns"
     "github.com/ethereum/go-ethereum/accounts/abi/bind"
     "github.com/ethereum/go-ethereum/common"
+    "github.com/ethereum/go-ethereum/contracts/ens/contract"
     "github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -69,7 +70,7 @@ func (reg *Registry) GetResolver(name string) (*Resolver, error) {
         return nil, err
     }
 
-    resolver, err := contract.NewResolver(resolverAddr, reg.backend)
+    resolver, err := dnsresolver.NewDNSResolver(resolverAddr, reg.backend)
     if err != nil {
         return nil, err
     }
@@ -78,7 +79,7 @@ func (reg *Registry) GetResolver(name string) (*Resolver, error) {
         Address: resolverAddr,
         node: node,
         registry: reg,
-        resolver: &contract.ResolverSession{
+        resolver: &dnsresolver.DNSResolverSession{
             Contract:     resolver,
             TransactOpts: reg.ens.TransactOpts,
         },
@@ -89,7 +90,7 @@ type Resolver struct {
     Address common.Address
     node common.Hash
     registry *Registry
-    resolver *contract.ResolverSession
+    resolver *dnsresolver.DNSResolverSession
 }
 
 func (res *Resolver) GetRRs() (rrs []dns.RR, err error) {
